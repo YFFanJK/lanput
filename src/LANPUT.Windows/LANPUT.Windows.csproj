@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>LANPUT</AssemblyName>
+    <Product>LANPUT</Product>
+    <Title>LANPUT</Title>
+    <Description>LANPUT Windows 局域网投屏接收器</Description>
+    <Version>0.9.4</Version>
+    <FileVersion>0.9.4.0</FileVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/LANPUT.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <Resource Include="Assets/LANPUT.ico" />
+    <Resource Include="Assets/logo.png" />
+    <Resource Include="Assets/app-icon.png" />
+    <ProjectReference Include="../LANPUT.Core/LANPUT.Core.csproj" />
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.10.2" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.24" />
+  </ItemGroup>
+</Project>

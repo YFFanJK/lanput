@@ -1,0 +1,41 @@
+**/bin/
+**/obj/
+dist/
+tests-output/
+.vs/
+*.user
+*.log
+
+# Editor and operating system files
+.idea/
+.vscode/
+*.suo
+*.userosscache
+*.sln.docstates
+Thumbs.db
+Desktop.ini
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+
+# Credentials and local application settings
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+settings.json
+desktop.json
+updates.json
+
+# Distribution archives and private production/review work
+*.nupkg
+*.snupkg
+promo/
+Gemini_Generated_Image_*.jpg
+/LANPUT-影院过渡-Demo.html
+demos/**/*.zip

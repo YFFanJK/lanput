@@ -1,0 +1,273 @@
+﻿<Window x:Class="LANPUT.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework" xmlns:local="clr-namespace:LANPUT.Windows"
+ Title="LANPUT · 私人放映室" Icon="Assets/LANPUT.ico" Width="1180" Height="760" MinWidth="900" MinHeight="540" WindowStyle="None" ResizeMode="CanResize" Background="#0E1114" Foreground="{StaticResource TextPrimary}" UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="13" Closing="Window_Closing" StateChanged="Window_StateChanged">
+ <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="44" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False"/></shell:WindowChrome.WindowChrome>
+ <Border x:Name="OuterFrame" BorderThickness="1" BorderBrush="#242A32" Background="#0E1114">
+ <Grid x:Name="LayoutRoot">
+  <Grid.RowDefinitions><RowDefinition Height="44"/><RowDefinition Height="48"/><RowDefinition Height="*"/><RowDefinition Height="102"/><RowDefinition Height="28"/></Grid.RowDefinitions>
+  <Grid x:Name="TitleBar"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <StackPanel Orientation="Horizontal" Margin="20,0,0,0" VerticalAlignment="Center">
+    <Image Source="Assets/app-icon.png" Width="28" Height="28" Stretch="Uniform" Margin="0,0,10,0" AutomationProperties.Name="LANPUT 标志"/>
+    <TextBlock Text="LANPUT" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+    <Border Width="1" Height="12" Background="#272C34" Margin="16,0"/><TextBlock Text="私人放映室" Foreground="#828A94" FontSize="12" VerticalAlignment="Center"/>
+   </StackPanel>
+   <StackPanel Grid.Column="1" Orientation="Horizontal" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+    <Button Style="{StaticResource CaptionButton}" ToolTip="最小化" AutomationProperties.Name="最小化" Click="Minimize_Click">
+     <Canvas Width="14" Height="14"><Line X1="2" Y1="7" X2="12" Y2="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/></Canvas>
+    </Button>
+    <Button x:Name="MaximizeButton" Style="{StaticResource CaptionButton}" ToolTip="最大化" AutomationProperties.Name="最大化" Click="Maximize_Click">
+     <Grid Width="14" Height="14">
+      <Canvas x:Name="MaximizeGlyph"><Rectangle Canvas.Left="2" Canvas.Top="2" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/></Canvas>
+      <Canvas x:Name="RestoreGlyph" Visibility="Collapsed"><Path Data="M5 4V2H12V9H10" Stretch="None" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/><Rectangle Canvas.Left="2" Canvas.Top="5" Width="8" Height="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/></Canvas>
+     </Grid>
+    </Button>
+    <Button x:Name="CloseWindowButton" Style="{StaticResource CaptionCloseButton}" ToolTip="关闭" AutomationProperties.Name="关闭" Click="CloseWindow_Click">
+     <Canvas Width="14" Height="14"><Line X1="2" Y1="2" X2="12" Y2="12" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/><Line X1="12" Y1="2" X2="2" Y2="12" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/></Canvas>
+    </Button>
+   </StackPanel>
+  </Grid>
+  <Grid x:Name="HeaderPanel" Grid.Row="1" Margin="24,0,16,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <Grid VerticalAlignment="Center" Margin="0,0,14,0"><Grid.ColumnDefinitions><ColumnDefinition Width="15"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="31"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <Grid Width="15" Height="16"><Ellipse x:Name="ServiceHalo" Width="12" Height="12" Stroke="{StaticResource StateIdle}" StrokeThickness="1" Opacity="0" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform></Ellipse><Ellipse x:Name="ServiceDot" Fill="{StaticResource StateIdle}" Width="6" Height="6" HorizontalAlignment="Left" Margin="3,0,0,0"/></Grid>
+    <TextBlock x:Name="ServiceStatus" Grid.Column="1" Text="尚未开启接收" MaxWidth="290" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Foreground="#A3A9B2" FontSize="12" VerticalAlignment="Center"/>
+    <Border Grid.Column="2" Width="1" Height="12" Background="#282E37"/>
+    <TextBlock x:Name="ReceiverNameLabel" Grid.Column="3" Text="MateBook GT 14 投屏" MaxWidth="260" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
+   </Grid>
+   <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+    <Button x:Name="QuickReceiveButton" Content="开始接收" Click="QuickReceive_Click" Style="{StaticResource GhostButton}" Padding="12,8" BorderThickness="0" Margin="0,0,12,0" FontSize="12"/>
+    <Button  Style="{StaticResource IconButton}" ToolTip="打开本地视频 · Ctrl+O" AutomationProperties.Name="打开本地视频 · Ctrl+O" Click="LocalFile_Click"><Path  Data="M3 6h7l2 3h9v11H3Zm0 0V4h7l2 2h7v3" Width="18" Height="18" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Button><Button x:Name="SettingsButton" Style="{StaticResource IconButton}" ToolTip="接收设置" AutomationProperties.Name="接收设置" Click="Settings_Click"><Path  Data="M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1Z M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0" Width="18" Height="18" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Button><Button  Style="{StaticResource IconButton}" ToolTip="连接诊断" AutomationProperties.Name="连接诊断" Click="ToggleLogs_Click"><Path  Data="M12 11v6M12 7h0.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0" Width="18" Height="18" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Button>
+   </StackPanel>
+  </Grid>
+  <Grid x:Name="PlayerSurface" ClipToBounds="True" SizeChanged="PlayerSurface_SizeChanged" Grid.Row="2" Margin="16,0,16,0">
+   <Border Background="#070C09" BorderBrush="#1E242C" BorderThickness="1" CornerRadius="8"/>
+   <vlc:VideoView x:Name="Video" AutomationProperties.Name="影院银幕" AutomationProperties.AutomationId="CinemaVideo" Margin="1">
+    <Grid x:Name="OverlayLayer" PreviewMouseLeftButtonDown="Surface_MouseLeftButtonDown" Focusable="True" Background="Transparent" PreviewKeyDown="Overlay_KeyDown">
+     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+     <Border Background="#070C09" IsHitTestVisible="False"/>
+     <Grid x:Name="CinemaScene" Grid.RowSpan="2" Background="#070C09" ClipToBounds="True">
+      <local:CinemaHall x:Name="CinemaHallArt" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.33" CacheMode="BitmapCache"><local:CinemaHall.RenderTransform><ScaleTransform x:Name="CinemaHallScale"/></local:CinemaHall.RenderTransform></local:CinemaHall>
+      <Canvas ClipToBounds="True" IsHitTestVisible="False">
+       <Border x:Name="CinemaScreenFrame" Width="1000" Height="560" BorderBrush="#8C8270" BorderThickness="2" CornerRadius="7" Background="#020609" CacheMode="BitmapCache">
+        <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="CinemaScreenScale"/><TranslateTransform x:Name="CinemaScreenTranslate"/></TransformGroup></Border.RenderTransform>
+        <Grid ClipToBounds="True">
+     <Border x:Name="IdleOverlay" SizeChanged="IdleOverlay_SizeChanged" Background="#07121A"><Grid>
+      <local:CinemaPoster IsHitTestVisible="False"/>
+      <StackPanel x:Name="IdleContent" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12">
+       <Grid x:Name="IdleArtwork" Width="180" Height="100" Margin="0,0,0,8">
+        <Border x:Name="OpeningRingOne" Width="62" Height="48" CornerRadius="12" BorderBrush="{StaticResource Accent}" BorderThickness="1" Opacity="0" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform/></Border.RenderTransform></Border>
+        <Border x:Name="OpeningRingTwo" Width="62" Height="48" CornerRadius="12" BorderBrush="{StaticResource Accent}" BorderThickness="1" Opacity="0" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform/></Border.RenderTransform></Border>
+        <Image Source="Assets/logo.png" Stretch="Uniform" AutomationProperties.Name="LANPUT 手机投屏到电脑 LOGO"/>
+       </Grid>
+       <TextBlock x:Name="IdleEyebrow" Visibility="Collapsed" Text="私人放映室" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,7" Foreground="#D8CBA6"/>
+       <Border x:Name="StateAlert" Visibility="Collapsed" Background="#CC341D1A" CornerRadius="5" Padding="8,4" Margin="0,0,0,5"><TextBlock Text="可重试播放或查看诊断" Foreground="{StaticResource StateError}" FontSize="10"/></Border>
+       <TextBlock x:Name="IdleTitle" Text="今晚，坐进故事里。" FontFamily="SimSun" TextWrapping="Wrap" TextAlignment="Center" FontSize="22" HorizontalAlignment="Center" Foreground="#F0ECE3"/>
+       <TextBlock x:Name="IdleHint" Text="手机选好影片，投屏，剩下的交给LANPUT。" FontSize="11" Margin="0,10,0,0" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="800" HorizontalAlignment="Center" Foreground="#D0D7D6"/>
+       <TextBlock x:Name="IdleDetail" Text="等待手机投放影片" TextWrapping="Wrap" TextAlignment="Center" FontSize="18" Margin="0,10,0,0" HorizontalAlignment="Center" Foreground="#A6B2B5"/>
+      </StackPanel>
+     </Grid></Border>
+         <Border x:Name="CinemaWelcomeOverlay" Visibility="Collapsed" Background="#08141E">
+          <Grid>
+           <local:CinemaPoster IsHitTestVisible="False"/>
+           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24">
+            <Image Source="Assets/app-icon.png" Width="160" Height="88" Margin="0,0,0,20"/>
+            <TextBlock Text="LANPUT" Foreground="#CDBB8A" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+            <TextBlock x:Name="CinemaWelcomeText" Text="好戏马上上演" FontSize="40" FontFamily="SimSun" Foreground="#F2EBDD" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="CinemaWelcomeSubtitle" Text="灯光渐暗，把这一刻交给电影。" FontSize="18" Foreground="#ACB9BA" HorizontalAlignment="Center" Margin="0,18,0,0"/>
+           </StackPanel>
+          </Grid>
+         </Border>
+        </Grid>
+       </Border>
+      </Canvas>
+   <StackPanel x:Name="CinemaLobby" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="14,0,14,22">
+    <TextBlock x:Name="LobbyNotice" Visibility="Collapsed" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="520" Foreground="{StaticResource Accent}" FontSize="11" Margin="0,0,0,8"/>
+    
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
+     <Button x:Name="IdlePrimaryButton" Content="开始接收" Click="IdlePrimary_Click" Style="{StaticResource GhostButton}" Padding="16,8" FontSize="12"/>
+     <Button x:Name="IdleDetailsButton" Content="打开本地视频" Click="IdleDetails_Click" Style="{StaticResource GhostButton}" FontSize="12" Margin="8,0,0,0"/>
+     <Button x:Name="CinemaExitFullscreenButton" Content="返回窗口 · Esc" Click="Fullscreen_Click" Visibility="Collapsed" Style="{StaticResource GhostButton}" FontSize="12" Margin="8,0,0,0"/>
+    </StackPanel>
+   </StackPanel>
+     </Grid>
+     <Grid x:Name="MusicOverlay" Grid.RowSpan="2" Visibility="Collapsed" ClipToBounds="True">
+      <Grid.Background><SolidColorBrush Color="#11171C"/></Grid.Background>
+      <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+      <local:MusicAtmosphere Grid.RowSpan="2" Opacity="0.24" IsHitTestVisible="False"/>
+      
+      <Grid x:Name="MusicLayout" Grid.Row="0" Margin="48,48,48,16" SizeChanged="MusicLayout_SizeChanged">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="44*"/><ColumnDefinition Width="48"/><ColumnDefinition Width="56*"/></Grid.ColumnDefinitions>
+       <Grid><Grid.RowDefinitions><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+       <Grid x:Name="VinylStage" SizeChanged="MusicLayout_SizeChanged">
+        <Grid x:Name="VinylFrame" Width="360" Height="360" HorizontalAlignment="Center" AutomationProperties.Name="黑胶唱片">
+         <local:VinylOrbit IsHitTestVisible="False"/>
+         <Grid x:Name="RecordSurface" Margin="32" CacheMode="BitmapCache" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False"><Grid.RenderTransform><RotateTransform x:Name="RecordRotation"/></Grid.RenderTransform><local:VinylRecord/></Grid>
+         <local:VinylTonearm IsHitTestVisible="False"/>
+        </Grid>
+        </Grid>
+        <StackPanel x:Name="MusicMetadata" Grid.Row="1" Margin="24,12,12,0">
+         <TextBlock x:Name="MusicPlaying" Visibility="Collapsed" Text="私人音乐厅" FontSize="12" Foreground="#D8BF86" Margin="0,0,0,12"/>
+         <TextBlock x:Name="MusicTitle" Text="正在播放音乐" FontSize="28" FontWeight="Medium" Foreground="#F1EADD" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+         <TextBlock x:Name="MusicArtist" Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,8,0,0" TextTrimming="CharacterEllipsis"/>
+         <TextBlock x:Name="MusicAlbum" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+       </Grid>
+       <Border x:Name="MusicDivider" Grid.Column="1" Width="1" Background="#30B8A479" VerticalAlignment="Center" Height="260"/>
+       <Grid Grid.Column="2" Margin="24,16,0,0" VerticalAlignment="Center">
+        <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel x:Name="LyricLines" VerticalAlignment="Center"><StackPanel.RenderTransform><TranslateTransform x:Name="LyricTranslate"/></StackPanel.RenderTransform>
+         <TextBlock x:Name="MusicFarPrevious" Foreground="#384346" FontSize="15" TextTrimming="CharacterEllipsis" Margin="0,0,0,24"/>
+         <TextBlock x:Name="MusicPrevious" Foreground="{StaticResource TextMuted}" FontSize="18" TextWrapping="Wrap" Margin="0,0,0,28" MaxHeight="64"/>
+         <TextBlock x:Name="MusicCurrent" Text="让音乐填满这一刻。" Foreground="#EAD4A5" FontSize="32" FontWeight="Medium" TextWrapping="Wrap"/>
+         <TextBlock x:Name="MusicNext" Foreground="{StaticResource TextSecondary}" FontSize="18" TextWrapping="Wrap" Margin="0,28,0,0" MaxHeight="64"/>
+         <TextBlock x:Name="MusicFarNext" Foreground="#384346" FontSize="15" TextTrimming="CharacterEllipsis" Margin="0,24,0,0"/>
+        </StackPanel>
+        <ScrollViewer x:Name="LyricsPlainScroll" Visibility="Collapsed" MaxHeight="300" VerticalScrollBarVisibility="Auto"><TextBlock x:Name="LyricsPlain" Foreground="#E1D7BD" FontSize="20" TextWrapping="Wrap"/></ScrollViewer>
+        <TextBlock x:Name="MusicLyricsHint" Grid.Row="1" Visibility="Collapsed" Foreground="{StaticResource TextMuted}" FontSize="12" TextWrapping="Wrap" Margin="0,24,0,0"/>
+        
+       </Grid>
+      </Grid>
+      <Grid x:Name="MusicControlsHost" Grid.Row="1" Margin="48,0,48,20"/>
+        <Expander x:Name="MusicTools" Grid.Row="0" Panel.ZIndex="10" VerticalAlignment="Top" Margin="24,16,24,0" Header="歌词" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Right" MaxWidth="500" Style="{StaticResource LyricsTools}">
+         <ScrollViewer x:Name="MusicToolsScroll" VerticalScrollBarVisibility="Auto" MaxHeight="280"><Border Background="#F51A2026" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,8,0,0"><StackPanel>
+          <TextBlock x:Name="MusicLyricsStatus" Foreground="{StaticResource TextSecondary}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12"/>
+          <TextBlock Text="在线匹配会将歌名、歌手发送至 LRCLIB；缺少信息时请手动补充。" FontSize="11" Foreground="#93A4B1" TextWrapping="Wrap" Margin="0,0,0,10"/>
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+           <TextBox x:Name="MusicSearchTitle" AutomationProperties.Name="歌词搜索歌名" ToolTip="歌名"/>
+           <TextBox x:Name="MusicSearchArtist" Grid.Column="2" AutomationProperties.Name="歌词搜索歌手" ToolTip="歌手"/>
+           <Button Grid.Column="3" Content="搜索歌词" Click="MusicSearch_Click" Margin="10,0,0,0"/>
+          </Grid>
+          <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><ComboBox x:Name="MusicCandidates" AutomationProperties.Name="歌词候选版本" MaxDropDownHeight="220"/><Button Content="使用此版本" Click="MusicChoose_Click" Grid.Column="1" Margin="10,0,0,0"/></Grid>
+          <WrapPanel Margin="0,12,0,0"><Button x:Name="PreviousLyricButton" Content="上一句" Click="PreviousLyric_Click" ToolTip="跳到上一句歌词" AutomationProperties.Name="上一句歌词" Margin="0,0,8,0"/><Button x:Name="NextLyricButton" Content="下一句" Click="NextLyric_Click" ToolTip="跳到下一句歌词" AutomationProperties.Name="下一句歌词"/></WrapPanel>
+          <WrapPanel Margin="0,12,0,0" VerticalAlignment="Center"><Button x:Name="MusicImportButton" Content="导入 LRC" Click="MusicImport_Click" Margin="0,0,12,8"/><Button Content="提前 0.5 秒" Click="MusicOffsetEarlier_Click" Margin="0,0,8,8"/><Button Content="延后 0.5 秒" Click="MusicOffsetLater_Click" Margin="0,0,12,8"/><TextBlock x:Name="MusicOffset" VerticalAlignment="Center" FontSize="11"/></WrapPanel>
+         </StackPanel></Border></ScrollViewer>
+        </Expander>
+     </Grid>
+     <Border x:Name="PauseOverlay" Grid.RowSpan="2" Visibility="Collapsed" Background="#44040805" IsHitTestVisible="False"><Border Width="64" Height="64" CornerRadius="32" Background="#990E161E" BorderBrush="#55FFFFFF" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"><Path Data="M8 5V19 M16 5V19" Width="25" Height="25" Stretch="Uniform" Stroke="White" StrokeThickness="1.8" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Border>
+     <Border x:Name="BufferingIndicator" Grid.RowSpan="2" Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="24,0,24,130" Background="#DD161C26" BorderBrush="#3A5A80" BorderThickness="1" CornerRadius="9" Padding="12,8" Panel.ZIndex="20"><TextBlock x:Name="BufferingLabel" Text="正在缓冲" FontSize="12" Foreground="{StaticResource StateConnecting}"/></Border>
+     <Border x:Name="MotionToast" Visibility="Collapsed" IsHitTestVisible="False" Panel.ZIndex="30" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="560" Margin="20,12,20,12" Padding="16,12" CornerRadius="8" BorderThickness="1" Background="#1A2026" BorderBrush="{StaticResource PanelBorder}"><TextBlock x:Name="MotionToastText" Foreground="White" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"/></Border>
+     <Button x:Name="ExitFullscreenButton" Grid.RowSpan="2" Content="退出全屏 · Esc" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="22" Padding="13,8" Background="#CC0E1114" BorderBrush="#363C46" Click="Fullscreen_Click"/>
+     <Grid x:Name="MusicCurtainOverlay" Grid.RowSpan="2" Panel.ZIndex="45" Visibility="Collapsed" ClipToBounds="True" Focusable="True" KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="影院与音乐厅换场">
+      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+      <Border Background="{StaticResource OpeningCurtain}" CacheMode="BitmapCache"><Border.RenderTransform><TranslateTransform x:Name="MusicCurtainLeftShift"/></Border.RenderTransform></Border>
+      <Border Grid.Column="1" Background="{StaticResource OpeningCurtain}" CacheMode="BitmapCache"><Border.RenderTransform><TranslateTransform x:Name="MusicCurtainRightShift"/></Border.RenderTransform></Border>
+      <StackPanel x:Name="MusicCurtainCopy" Grid.ColumnSpan="2" Opacity="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24" IsHitTestVisible="False">
+       <StackPanel.RenderTransform><TranslateTransform x:Name="MusicCurtainCopyShift"/></StackPanel.RenderTransform>
+       <Image Source="Assets/logo.png" Width="160" Height="108" Stretch="Uniform" AutomationProperties.Name="LANPUT"/>
+       <TextBlock x:Name="MusicCurtainTitle" Text="这一场，听音乐" FontFamily="SimSun" FontSize="32" Foreground="#E7D7AF" TextAlignment="Center" TextWrapping="Wrap" Margin="0,16,0,0"/>
+       <TextBlock x:Name="MusicCurtainSubtitle" Text="私人音乐厅" FontSize="12" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
+      </StackPanel>
+      <Button Grid.ColumnSpan="2" Content="跳过 · Esc" AutomationProperties.Name="跳过影院与音乐厅换场" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24,16" Padding="12,8" Click="MusicCurtainSkip_Click"/>
+     </Grid>
+     <Grid x:Name="StartupOverlay" Grid.RowSpan="2" Panel.ZIndex="50" Visibility="Collapsed" ClipToBounds="True" KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="LANPUT 开幕动画">
+      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+      <Border Background="{StaticResource OpeningCurtain}" CacheMode="BitmapCache">
+       <Border.RenderTransform><TranslateTransform x:Name="StartupLeftShift"/></Border.RenderTransform>
+      </Border>
+      <Border Grid.Column="1" Background="{StaticResource OpeningCurtain}" CacheMode="BitmapCache">
+       <Border.RenderTransform><TranslateTransform x:Name="StartupRightShift"/></Border.RenderTransform>
+      </Border>
+      <StackPanel x:Name="StartupBrand" Grid.ColumnSpan="2" Opacity="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24" IsHitTestVisible="False">
+       <Image Source="Assets/logo.png" Width="208" Height="144" Stretch="Uniform" AutomationProperties.Name="LANPUT"/>
+       <TextBlock Text="私人放映室" FontSize="16" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
+      </StackPanel>
+      <Button x:Name="StartupSkipButton" Grid.ColumnSpan="2" Content="跳过 · Esc" AutomationProperties.Name="跳过开幕动画" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24,16" Padding="12,8" Click="StartupSkip_Click"/>
+     </Grid>
+    </Grid>
+   </vlc:VideoView>
+
+  </Grid>
+  <Border x:Name="ControlsPanel" TextElement.Foreground="{StaticResource TextPrimary}" Grid.Row="3" Padding="24,12,24,8" Background="#0E1114">
+   <Grid><Grid.RowDefinitions><RowDefinition Height="24"/><RowDefinition/></Grid.RowDefinitions>
+    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+     <TextBlock x:Name="PositionLabel" Text="00:00:00" FontSize="12" Foreground="#9FA4AD" VerticalAlignment="Center"/>
+     <Slider MouseMove="MusicSeek_MouseMove" MouseLeave="MusicSeek_MouseLeave" x:Name="PositionSlider" AutomationProperties.Name="播放进度" AutomationProperties.HelpText="左右方向键调整进度，Home 和 End 跳到开头或结尾" Grid.Column="1" Margin="16,0" Minimum="0" Maximum="1" SmallChange="5000" LargeChange="30000" LostMouseCapture="Seek_CaptureLost" KeyUp="Seek_KeyUp"/>
+     <TextBlock x:Name="DurationLabel" Grid.Column="2" Text="00:00:00" FontSize="12" Foreground="#9FA4AD" VerticalAlignment="Center"/>
+    </Grid>
+    <Grid x:Name="PlaybackButtonsGrid" Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+     <StackPanel x:Name="PlaybackTransport" Orientation="Horizontal" VerticalAlignment="Center">
+      <Button x:Name="PlayButton" Background="#E8C87A" Foreground="#2A2010" BorderThickness="0" Padding="11" Width="39" Height="38" Click="PlayPause_Click" ToolTip="播放 / 暂停 · 空格" AutomationProperties.Name="播放 / 暂停"><Path x:Name="PlayGlyph" Data="M8 5l11 7-11 7Z" Width="17" Height="17" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Button>
+      <Button x:Name="StopMediaButton" Style="{StaticResource IconButton}" ToolTip="停止播放" AutomationProperties.Name="停止播放" Click="StopPlayback_Click"><Path Data="M6 6h12v12H6Z" Width="18" Height="18" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Button>
+      <Border x:Name="TransportDivider" Height="30" Width="1" Background="#262C35" Margin="12,0,16,0"/>
+     </StackPanel>
+     <StackPanel x:Name="PlaybackTrackDetails" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+      <TextBlock x:Name="MediaTitle" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="等待影片" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+      <TextBlock x:Name="PlaybackState" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="尚无影片" FontSize="12" Foreground="#86909B" Margin="0,4,0,0"/>
+     </StackPanel>
+     <StackPanel x:Name="PlaybackRight" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+      <Button x:Name="PlaybackInfoButton" Content="播放信息" Style="{StaticResource GhostButton}" Padding="10,8" ToolTip="播放信息 · Ctrl+I" AutomationProperties.Name="播放信息" Click="PlaybackInfo_Click"/>
+      <Button x:Name="MuteButton" Style="{StaticResource IconButton}" ToolTip="静音 · M" AutomationProperties.Name="静音" Click="Mute_Click"><Path x:Name="MuteGlyph" Data="M3 9h5l5-4v14l-5-4H3Z M17 8a6 6 0 0 1 0 8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" Width="18" Height="18" Stretch="Uniform"/></Button><Slider x:Name="VolumeSlider" Width="82" Minimum="0" Maximum="100" SmallChange="1" LargeChange="10" Value="70" ValueChanged="Volume_Changed" ToolTip="音量" AutomationProperties.Name="音量" Margin="8,0,18,0"/>
+      <Button  Style="{StaticResource IconButton}" ToolTip="全屏 · F / F11" AutomationProperties.Name="全屏 · F / F11" Click="Fullscreen_Click"><Path  Data="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5" Width="18" Height="18" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Button>
+     </StackPanel>
+    </Grid>
+   </Grid>
+  </Border>
+  <Grid x:Name="FooterPanel" Grid.Row="4" Margin="24,0,22,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock x:Name="FooterHint" Text="LANPUT 0.9.4" Foreground="#858D97" FontSize="12" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+   <TextBlock Grid.Column="1" Text="空格 播放    ← → 进度    M 静音    F 全屏" FontSize="12" Foreground="#828A94" VerticalAlignment="Center" Margin="20,0,0,0"/>
+  </Grid>
+  <Popup x:Name="SettingsPopup" Placement="Bottom" PlacementTarget="{Binding ElementName=SettingsButton}" HorizontalOffset="-310" VerticalOffset="10" StaysOpen="False" AllowsTransparency="True" PopupAnimation="None">
+   <Border x:Name="SettingsPanel" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" Width="360" TextElement.Foreground="{StaticResource TextPrimary}" Background="#171B21" BorderBrush="#2C323B" BorderThickness="1" CornerRadius="12" Padding="24" PreviewKeyDown="Overlay_KeyDown">
+    <StackPanel>
+     <Grid Margin="0,0,0,18"><TextBlock Text="接收设置" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/><Button x:Name="CloseSettingsButton" Content="关闭" Click="CloseSettings_Click" Style="{StaticResource GhostButton}" HorizontalAlignment="Right"/></Grid>
+     <ScrollViewer x:Name="SettingsScroll" MaxHeight="470" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="0,0,6,0">
+       <TextBlock Text="设备名称" FontSize="12" Foreground="#A3A9B2" Margin="0,0,0,8"/><TextBox x:Name="DeviceName" AutomationProperties.Name="投屏设备名称" MaxLength="60"/>
+       <Grid Margin="0,18,0,8"><TextBlock Text="与手机同一局域网的网卡" FontSize="12" Foreground="#A3A9B2"/><Button x:Name="RefreshButton" Content="刷新" Click="Refresh_Click" Style="{StaticResource GhostButton}" Padding="0" HorizontalAlignment="Right"/></Grid>
+       <ComboBox x:Name="NetworkBox" AutomationProperties.Name="接收网卡" ToolTip="{Binding SelectedItem, RelativeSource={RelativeSource Self}}" FontSize="12"/>
+       <TextBlock Text="停止接收后可修改名称与网卡；下次启动接收时保存。" Foreground="#939AA4" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,18"/>
+       <Button x:Name="ConnectionCheckButton" Content="连接检查" Click="ConnectionCheck_Click" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Padding="0,0,0,8"/>
+       <TextBlock x:Name="ConnectionCheckSummary" Text="开始接收前将检查网卡和接收端口；检查不会修改网络设置。" Foreground="{StaticResource TextMuted}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,15"/>
+       <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="10"/><ColumnDefinition/></Grid.ColumnDefinitions>
+        <Button x:Name="StartButton" Content="开始接收" Background="#E8C87A" Foreground="#2A2010" BorderThickness="0" Click="Start_Click"/>
+        <Button x:Name="StopButton" Grid.Column="2" Content="停止接收" IsEnabled="False" Click="Stop_Click"/>
+       </Grid>
+       <Border Height="1" Background="#2A3039" Margin="0,23,0,20"/>
+       <TextBlock Text="高级与排查" Foreground="#A3A9B2" FontSize="12" Margin="0,0,0,10"/>
+       <CheckBox x:Name="AutoReceiveBox" Content="启动 LANPUT 后自动开始接收" ToolTip="仅影响下次启动；使用之前成功接收时保存的网卡，不设置 Windows 开机启动" Click="AutoReceive_Click" Margin="0,0,0,12"/>
+       <CheckBox x:Name="KeepAwakeBox" Content="播放时保持屏幕与电脑唤醒" Click="DesktopOption_Click" Margin="0,0,0,12"/>
+       <CheckBox x:Name="CloseToTrayBox" Content="关闭窗口时收起到托盘" Click="DesktopOption_Click" Margin="0,0,0,12"/>
+       <Button Content="收起到托盘" Click="HideToTray_Click" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+       <TextBlock Text="窗口与音量自动记忆。启用关闭到托盘后，请从托盘菜单退出；网络恢复后可能需要手机重新投放。" TextWrapping="Wrap" Foreground="#939AA4" FontSize="12" Margin="0,0,0,12"/>
+       <CheckBox x:Name="InterfaceAnimationsBox" Content="界面动画（遵循系统动态效果设置）" Click="InterfaceAnimations_Click" FontSize="12" Margin="0,0,0,12"/>
+       <CheckBox x:Name="CompatibilityBox" Content="兼容渲染（记住选择；切换后重新投屏）" Click="Compatibility_Click" FontSize="12"/>
+       <Button Content="打开网络设置" Click="NetworkSettings_Click" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Padding="0,15,0,0"/>
+       <Border Height="1" Background="#2A3039" Margin="0,23,0,20"/>
+       <TextBlock Text="软件更新" FontSize="15" Margin="0,0,0,12"/>
+       <TextBlock Text="更新信息地址（HTTPS JSON）" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,0,0,6"/>
+       <TextBox x:Name="UpdateFeedBox" AutomationProperties.Name="更新地址" ToolTip="填写发布服务器上的 latest.json 地址" Margin="0,0,0,12"/>
+       <CheckBox x:Name="AutoUpdateCheckBox" Content="启动后在线检查新版本" Margin="0,0,0,12"/>
+       <WrapPanel Margin="0,0,0,12">
+        <Button Content="保存更新设置" Click="SaveUpdateOptions_Click" Margin="0,0,8,0"/>
+        <Button x:Name="CheckUpdatesButton" Content="检查更新" Click="CheckUpdates_Click"/>
+       </WrapPanel>
+       <TextBlock x:Name="UpdateStatus" TextWrapping="Wrap" Foreground="{StaticResource TextMuted}" FontSize="12"/>
+      </StackPanel>
+     </ScrollViewer>
+    </StackPanel>
+   </Border>
+  </Popup>
+  <Popup x:Name="PlaybackInfoPopup" Placement="Center" PlacementTarget="{Binding ElementName=LayoutRoot}" StaysOpen="False" AllowsTransparency="True" PopupAnimation="None">
+   <Border x:Name="PlaybackInfoPanel" Width="540" Background="#14171D" BorderBrush="#2C323B" BorderThickness="1" CornerRadius="12" Padding="24" TextElement.Foreground="{StaticResource TextPrimary}" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" PreviewKeyDown="Overlay_KeyDown">
+    <StackPanel>
+     <Grid Margin="0,0,0,14"><TextBlock Text="播放信息" FontSize="19" FontWeight="SemiBold"/><Button x:Name="ClosePlaybackInfoButton" Content="关闭" Click="ClosePlaybackInfo_Click" Style="{StaticResource GhostButton}" HorizontalAlignment="Right"/></Grid>
+     <TextBox x:Name="PlaybackInfoText" AutomationProperties.Name="当前播放信息" Height="390" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#10131A" BorderThickness="0" FontFamily="Consolas, Microsoft YaHei UI" FontSize="13"/>
+     <TextBlock Text="打开时每秒刷新。帧率与码率来自所选媒体轨道；帧数由引擎累计。未提供的数据显示“暂无”。" TextWrapping="Wrap" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,14,0,0"/>
+    </StackPanel>
+   </Border>
+  </Popup>
+  <Popup x:Name="DiagnosticsPopup" Placement="Center" PlacementTarget="{Binding ElementName=LayoutRoot}" StaysOpen="False" AllowsTransparency="True" PopupAnimation="None">
+   <Border x:Name="DiagnosticsPanel" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" TextElement.Foreground="{StaticResource TextPrimary}" Width="660" Background="#14171D" BorderBrush="#2C323B" BorderThickness="1" CornerRadius="12" Padding="24" PreviewKeyDown="Overlay_KeyDown">
+    <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+     <Grid Margin="0,0,0,17"><TextBlock Text="播放与连接诊断" FontSize="19" FontWeight="SemiBold"/><Button x:Name="CloseDiagnosticsButton" Content="关闭" Click="CloseDiagnostics_Click" Style="{StaticResource GhostButton}" HorizontalAlignment="Right"/></Grid>
+     <TextBox x:Name="LogBox" AutomationProperties.Name="脱敏诊断记录" Grid.Row="1" Height="275" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="#10131A" BorderBrush="{StaticResource InputBorder}" Foreground="#B0B4BC" FontFamily="Consolas, Microsoft YaHei UI" FontSize="12"/>
+     <WrapPanel Grid.Row="2" Margin="0,18,0,0">
+      <Button x:Name="ProbeButton" Content="检测当前媒体" Click="Probe_Click" Margin="0,0,8,0"/>
+      <Button x:Name="CopyDiagnosticsButton" Content="复制诊断" Click="Copy_Click" Margin="0,0,8,0"/>
+      <Button Content="导出诊断" Click="ExportDiagnostics_Click" Margin="0,0,8,0"/>
+      <Button Content="日志目录" Click="Logs_Click" Style="{StaticResource GhostButton}"/>
+     </WrapPanel>
+    </Grid>
+   </Border>
+  </Popup>
+ </Grid>
+ </Border>
+</Window>

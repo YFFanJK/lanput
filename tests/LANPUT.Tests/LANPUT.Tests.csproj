@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/LANPUT.Core/LANPUT.Core.csproj" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../src/LANPUT.Windows/DesktopPreferences.cs" Link="DesktopPreferences.cs" />
+    <Compile Include="../../src/LANPUT.Windows/AppStorage.cs" Link="AppStorage.cs" />
+  </ItemGroup>
+</Project>
