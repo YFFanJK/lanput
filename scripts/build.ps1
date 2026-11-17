@@ -24,21 +24,6 @@ Copy-Item (Join-Path $root 'LICENSE') $destination
 New-Item -ItemType Directory -Path (Join-Path $destination 'licenses') -Force | Out-Null
 Copy-Item (Join-Path $root 'licenses/*') (Join-Path $destination 'licenses') -Recurse -Force
 Copy-Item (Join-Path $root 'THIRD-PARTY-NOTICES.md') $destination
-Copy-Item (Join-Path $root 'docs/ACCEPTANCE.md') $destination
-Copy-Item (Join-Path $root 'docs/CINEMA-ACCEPTANCE.md') $destination
-Copy-Item (Join-Path $root 'docs/DESKTOP-ACCEPTANCE.md') $destination
-Copy-Item (Join-Path $root 'docs/PLAYBACK-INFO.md') $destination
-Copy-Item (Join-Path $root 'docs/CINEMA-0.7.0.md') $destination
-Copy-Item (Join-Path $root 'docs/CINEMA-0.7.1.md') $destination
-Copy-Item (Join-Path $root 'docs/WINDOW-BOUNDS.md') $destination
-Copy-Item (Join-Path $root 'docs/MUSIC-0.8.0.md') $destination
-Copy-Item (Join-Path $root 'docs/RELEASE-0.8.1.md') $destination
-Copy-Item (Join-Path $root 'docs/RELEASE-0.9.0.md') $destination
-Copy-Item (Join-Path $root 'docs/RELEASE-0.9.1.md') $destination
-Copy-Item (Join-Path $root 'docs/STARTUP-0.9.2.md') $destination
-Copy-Item (Join-Path $root 'docs/STARTUP-0.9.3.md') $destination
-Copy-Item (Join-Path $root 'docs/MUSIC-TRANSITION-0.9.4.md') $destination
-Copy-Item (Join-Path $root 'docs/VINYL-0.9.0.md') $destination
 Copy-Item (Join-Path $root 'scripts/firewall.ps1') $destination
 Copy-Item (Join-Path $root 'scripts/firewall.cmd') $destination
 Copy-Item (Join-Path $root 'installer/update-defaults.json') $destination

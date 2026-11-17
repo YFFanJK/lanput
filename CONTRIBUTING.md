@@ -4,7 +4,7 @@
 
 ## 开发环境
 
-使用 Windows、.NET 10 SDK；构建安装包另外需要 Inno Setup。完整命令见 [构建说明](docs/BUILDING.md)。
+使用 Windows、.NET 10 SDK；构建安装包另外需要 Inno Setup。完整命令见 [README 构建说明](README.md#从源码构建)。
 
 ```powershell
 dotnet run --project tests/LANPUT.Tests/LANPUT.Tests.csproj -c Release

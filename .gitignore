@@ -39,3 +39,15 @@ promo/
 Gemini_Generated_Image_*.jpg
 /LANPUT-影院过渡-Demo.html
 demos/**/*.zip
+
+# Local design studies and development records are not public source.
+/demos/
+/docs/
+/VALIDATION.md
+/scripts/generate-music-demos.py
+/scripts/prepare-branding.ps1
+/scripts/prepare-github.ps1
+/scripts/test-project-encoding.ps1
+/src/LANPUT.Windows/Assets/logo-original.jpg
+/src/LANPUT.Windows/Assets/logo-transparent-source.png
+/src/LANPUT.Windows/Assets/mark-transparent-source.png

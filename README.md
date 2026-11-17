@@ -8,7 +8,7 @@ LANPUT 是一个面向 Windows 的局域网媒体接收器，使用 C#、WPF 与
 
 当前版本：**0.9.4** · **Windows x64** · **.NET 10** · **MIT**
 
-[下载发行版](https://github.com/YFFanJK/lanput/releases) · [从源码构建](docs/BUILDING.md) · [更新记录](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
+[下载发行版](https://github.com/YFFanJK/lanput/releases) · [从源码构建](#从源码构建) · [更新记录](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
 
 ## 功能
 
@@ -24,11 +24,11 @@ LANPUT 是一个面向 Windows 的局域网媒体接收器，使用 C#、WPF 与
 
 影院待机，原生界面：
 
-![影院待机](docs/images/cinema.png)
+![影院待机](.github/assets/cinema.png)
 
 黑胶音乐厅，使用本地测试音频与示例歌词：
 
-![黑胶音乐厅](docs/images/music.png)
+![黑胶音乐厅](.github/assets/music.png)
 
 ## 开始使用
 
@@ -62,7 +62,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
 生成安装包还需要 Inno Setup，然后运行 `package.cmd`。已构建后，双击 `run.cmd` 即可启动；修改源码后使用 `build-and-run.cmd --rebuild`。
 
-完整流程见 [BUILDING.md](docs/BUILDING.md)。测试是控制台回归程序，请使用 `dotnet run`，不能以 `dotnet test` 代替。
+测试是控制台回归程序，请使用 `dotnet run`，不能以 `dotnet test` 代替。首次构建需要联网还原 NuGet 包；生成的自包含发行版无需另外安装 .NET。
 
 ## 项目结构
 
@@ -73,20 +73,24 @@ src/.../Assets/        应用与安装器品牌资源
 tests/LANPUT.Tests/    核心协议、更新及歌词回归
 scripts/              构建、打包和开发工具
 installer/            Inno Setup 与默认更新配置
-docs/                 构建、发布、隐私和设计记录
-demos/                可离线打开的 HTML 设计原型
-.github/              CI、手动构建与协作模板
+.github/              CI、协作模板与 README 截图
 ```
 
 ## 设置、隐私与排错
 
-配置和日志位于 `%LOCALAPPDATA%\LANPUT`。在线歌词查询发送歌曲标题与歌手，更新检查请求已配置的清单地址。详情见 [数据与网络行为](docs/PRIVACY.md)。
+配置和日志位于 `%LOCALAPPDATA%\LANPUT`。在线歌词查询发送歌曲标题与歌手，更新检查请求已配置的清单地址。更新配置位于 `installer/update-defaults.json`，已有用户设置优先；本项目未接入遥测或统计 SDK。
 
 连接失败时先检查同一局域网、网卡、专用网络防火墙、访客网络或 AP 隔离。提交 Issue 前，请人工检查并遮盖日志中的个人信息、设备名称和媒体签名地址。
 
-- [验证记录与边界](VALIDATION.md)
 - [安全问题报告](SECURITY.md)
-- [发布和更新清单](docs/RELEASING.md)
+
+自动检查覆盖 52 项协议、更新和歌词回归及 Windows 编译；不代表所有手机、片源与网络组合均已验证。
+
+## 发布与在线更新
+
+安装包、便携包和同批 `SHA256SUMS.txt` 放到 GitHub Releases，不提交进源码分支。`package.cmd` 需要 Inno Setup，版本从 Windows 项目文件读取。
+
+客户端更新清单使用 `version`、`downloadUrl`、`notes` 字段，不能直接使用 GitHub API 的 Release 对象代替。先确认真实安装包下载和校验值，再发布清单；`latest.example.json` 只是模板。默认更新地址由 `installer/update-defaults.json` 配置。
 
 ## 许可
 
