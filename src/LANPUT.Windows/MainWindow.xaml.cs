@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
@@ -75,7 +75,7 @@ public partial class MainWindow : Window
         timer.Tick += (_, _) => UpdatePlayback(); timer.Start();
         PreviewKeyDown += HandlePreviewKey;
         if (AppStorage.MigrationNotice is not null) Log(AppStorage.MigrationNotice);
-        Log("LANPUT 0.9.4 · 目标：Mate 80 Pro Max / HarmonyOS 7.0 / 华为视频 1.2.50 / Windows 11");
+        Log("LANPUT 0.9.5 · 目标：Mate 80 Pro Max / HarmonyOS 7.0 / 华为视频 1.2.50 / Windows 11");
         Log("请选择手机所在局域网的网卡，启动后允许 Windows 防火墙在专用网络中通信。");
     }
     static Settings LoadSettings()
@@ -148,7 +148,7 @@ public partial class MainWindow : Window
             ReceiverNameLabel.Text = settings.Name;
             SettingsPopup.IsOpen = false;
             if (readiness.HasWarnings) ShowMotionToast("连接检查有提醒；详情见诊断", "Info");
-            FooterHint.Text = "LANPUT 0.9.4";
+            FooterHint.Text = "LANPUT 0.9.5";
             ConnectionCheckSummary.Text = "接收服务已开启；若手机找不到设备，请检查同一局域网与防火墙。";
             Log("等待手机 TV 按钮连接。此接收器不代表华为认证设备，不保证会员片源播放权限。");
         }
@@ -189,7 +189,7 @@ public partial class MainWindow : Window
         {
             await StopReceiver(); ServiceStatus.Text = "已停止";
             ShowMotionToast("接收已停止", "Idle");
-            FooterHint.Text = "LANPUT 0.9.4";
+            FooterHint.Text = "LANPUT 0.9.5";
         }
         catch (Exception ex) { ServiceStatus.Text = "已停止 · 清理异常"; Log("接收停止清理异常 · " + ex.GetType().Name); }
         finally { busy = false; SetButtons(false); }
@@ -205,7 +205,7 @@ public partial class MainWindow : Window
         bool canPause = p.State == "PLAYING" || activity.Phase == PlaybackPhase.Buffering
             || (playback.AllowsTransitionPause && p.State != "PAUSED_PLAYBACK");
         PlayButton.SetValue(System.Windows.Automation.AutomationProperties.NameProperty, canPause ? "暂停播放" : "开始播放");
-        PlaybackState.Text = p.Uri.Length == 0 ? "尚无影片" : playback.AllowsTransitionPause && p.State != "PAUSED_PLAYBACK" ? "正在准备放映" : activity.Label;
+        PlaybackState.Text = p.Uri.Length == 0 ? "尚无影片" : playback.AllowsTransitionPause && p.State != "PAUSED_PLAYBACK" ? "正在准备放映" : playback.PresentationLabel;
         BufferingIndicator.Visibility = cinemaVideoRevealed && activity.Phase == PlaybackPhase.Buffering && playback.HasVideoOutput
             ? Visibility.Visible : Visibility.Collapsed;
         BufferingLabel.Text = activity.Label;
@@ -215,10 +215,12 @@ public partial class MainWindow : Window
         PlayGlyph.Data = Geometry.Parse(canPause ? "M8 5V19 M16 5V19" : "M8 5L19 12L8 19Z");
         PlayButton.ToolTip = canPause ? "暂停 · 空格" : "播放 · 空格";
         PlayButton.IsEnabled = p.Uri.Length > 0 && !busy;
+        PlaybackTimeline.Visibility = playback.IsImage ? Visibility.Collapsed : Visibility.Visible;
+        PlaybackTimelineRow.Height = new GridLength(playback.IsImage ? 0 : 24);
         PositionSlider.IsEnabled = playback.CanSeek;
         IdlePrimaryButton.IsEnabled = !busy && p.State != "TRANSITIONING";
         IdlePrimaryButton.Content = p.Status != "OK" ? "重试播放" : activity.Phase == PlaybackPhase.Paused ? "继续播放" : receivingRequested ? "接收设置" : "开始接收";
-        IdleDetailsButton.Content = p.Status != "OK" ? "查看诊断" : "打开本地视频";
+        IdleDetailsButton.Content = p.Status != "OK" ? "查看诊断" : "打开本地文件";
         bool idleNeedsAction = p.Status != "OK" || activity.Phase == PlaybackPhase.Paused || !receivingRequested;
         IdlePrimaryButton.Background = idleNeedsAction ? (Brush)FindResource("Accent") : Brushes.Transparent;
         IdlePrimaryButton.Foreground = (Brush)FindResource(idleNeedsAction ? "TextOnAccent" : "TextSecondary");
@@ -254,7 +256,7 @@ public partial class MainWindow : Window
         else
         {
             IdleTitle.Text = p.Uri.Length == 0 ? "今晚，坐进故事里。" : "放映结束，欢迎再次入座。";
-            IdleDetail.Text = receiver is null ? "点击上方“开始接收”，或打开本地视频" : "在手机播放器中点击 TV，选择上方的电脑名称";
+            IdleDetail.Text = receiver is null ? "点击上方“开始接收”，或打开本地文件" : "在手机播放器中点击 TV，选择上方的电脑名称";
         }
         PositionLabel.Text = XmlSafe.Time(p.PositionMs); DurationLabel.Text = XmlSafe.Time(p.DurationMs);
         PositionSlider.Maximum = Math.Max(1, p.DurationMs);
@@ -324,6 +326,10 @@ public partial class MainWindow : Window
             OuterFrame.BorderThickness = new Thickness(1); WindowState = savedState;
             UpdateFrameInset();
         }
+        FullscreenGlyph.Data = (Geometry)FindResource(fullscreen ? "CollapseScreenGeometry" : "ExpandScreenGeometry");
+        string fullscreenAction = fullscreen ? "退出全屏 · F / F11 / Esc" : "进入全屏 · F / F11";
+        FullscreenButton.ToolTip = fullscreenAction;
+        FullscreenButton.SetValue(System.Windows.Automation.AutomationProperties.NameProperty, fullscreenAction);
         ApplyMusicPlayerLayout();
     }
     void UpdateFrameInset()
@@ -442,7 +448,11 @@ public partial class MainWindow : Window
     void Seek_CaptureLost(object sender, MouseEventArgs e) => dragging = false;
     void LocalFile_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Title = "选择本地视频验证播放窗口", Filter = "视频文件|*.mp4;*.mkv;*.mov;*.avi;*.ts;*.webm|所有文件|*.*" };
+        var dialog = new OpenFileDialog
+        {
+            Title = "打开本地视频或音乐",
+            Filter = "媒体文件|*.mp4;*.mkv;*.mov;*.avi;*.ts;*.webm;*.mp3;*.m4a;*.aac;*.flac;*.wav;*.ogg;*.opus;*.wma|所有文件|*.*"
+        };
         if (dialog.ShowDialog(this) != true) return;
         try { playback.LoadLocal(dialog.FileName); playback.Play(); }
         catch (Exception ex)
@@ -476,7 +486,10 @@ public partial class MainWindow : Window
     void NetworkSettings_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("ms-settings:network-status") { UseShellExecute = true });
     string DiagnosticSummary()
     {
-        return $"LANPUT 0.9.4\nWindows：{Environment.OSVersion.VersionString}\n接收状态：{ServiceStatus.Text}\n播放状态：{playback.Snapshot.State}/{playback.Snapshot.Status}\n视频输出：{(playback.HasVideoOutput ? "已建立" : "未建立")}\n应用事件：{AppDiagnostics.LastEvent}\n" + string.Join(Environment.NewLine, logLines);
+        string playbackDetails;
+        try { playbackDetails = playback.ReadPlaybackInfo().ToDisplayText(); }
+        catch (Exception error) { playbackDetails = "播放参数读取失败 · " + error.GetType().Name; }
+        return $"LANPUT 0.9.5\nWindows：{Environment.OSVersion.VersionString}\n接收状态：{ServiceStatus.Text}\n播放状态：{playback.Snapshot.State}/{playback.Snapshot.Status}\n视频输出：{(playback.HasVideoOutput ? "已建立" : "未建立")}\n应用事件：{AppDiagnostics.LastEvent}\n\n播放参数（导出时快照）：\n{playbackDetails}\n\n事件记录：\n" + string.Join(Environment.NewLine, logLines);
     }
     async void Copy_Click(object sender, RoutedEventArgs e)
     {

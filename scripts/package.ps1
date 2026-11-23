@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([string]$FeedUrl = '', [string]$DownloadUrl = '', [string]$Compiler = '', [string]$Notes = 'LANPUT installer and online update checking.')
+param([string]$FeedUrl = '', [string]$DownloadUrl = '', [string]$Compiler = '', [string]$Notes = 'LANPUT installer and online update checking.', [string]$PublishDirectory = '')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 if (-not $PSBoundParameters.ContainsKey('FeedUrl')) {
@@ -22,11 +22,11 @@ if (-not $Compiler) {
     }
 }
 if (-not $Compiler -or -not (Test-Path -LiteralPath $Compiler)) { throw 'Install Inno Setup (ISCC.exe) or pass -Compiler.' }
-& (Join-Path $PSScriptRoot 'build.ps1') -SkipArchive
+$destination = if ($PublishDirectory) { [System.IO.Path]::GetFullPath($PublishDirectory) } else { Join-Path $root 'dist/LANPUT-win-x64' }
+& (Join-Path $PSScriptRoot 'build.ps1') -SkipArchive -PublishDirectory $destination
 if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
-$destination = Join-Path $root 'dist/LANPUT-win-x64'
 @{ FeedUrl = $FeedUrl; CheckOnStartup = $true } | ConvertTo-Json | Set-Content (Join-Path $destination 'update-defaults.json') -Encoding UTF8
-& $Compiler "/DAppVersion=$version" (Join-Path $root 'installer/LANPUT.iss')
+& $Compiler "/DAppVersion=$version" "/DSourceDir=$destination" (Join-Path $root 'installer/LANPUT.iss')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
 $installer = Join-Path $root "dist/LANPUT-$version-Setup-x64.exe"
 $portable = Join-Path $root "dist/LANPUT-$version-win-x64.zip"

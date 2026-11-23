@@ -32,7 +32,7 @@ public sealed class ReceiverHost(NetworkChoice network, string name, Guid id, in
         {
             var remote = ctx.Connection.RemoteIpAddress;
             if (remote is null || !network.Contains(remote)) { ctx.Response.StatusCode = 403; return; }
-            ctx.Response.Headers["Server"] = "Windows/10.0 UPnP/1.0 LanCast/0.2";
+            ctx.Response.Headers["Server"] = ReceiverIdentity.Server;
             try { await next(ctx); }
             catch (BadHttpRequestException e) { ctx.Response.StatusCode = e.StatusCode; }
             catch (OperationCanceledException) { }
@@ -43,7 +43,7 @@ public sealed class ReceiverHost(NetworkChoice network, string name, Guid id, in
             log("手机已获取设备描述");
             return Results.Text(UpnpProtocol.Description(name, id, Origin), "text/xml; charset=utf-8");
         });
-        app.MapGet("/health", () => Results.Json(new { receiver = "LANPUT", version = "0.4.2", status = player.Snapshot.State }));
+        app.MapGet("/health", () => Results.Json(new { receiver = "LANPUT", version = ReceiverIdentity.Version, status = player.Snapshot.State }));
         foreach (var service in UpnpProtocol.Services)
         {
             var key = UpnpProtocol.Key(service);

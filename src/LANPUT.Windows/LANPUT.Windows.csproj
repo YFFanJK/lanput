@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
@@ -8,8 +8,8 @@
     <Product>LANPUT</Product>
     <Title>LANPUT</Title>
     <Description>LANPUT Windows 局域网投屏接收器</Description>
-    <Version>0.9.4</Version>
-    <FileVersion>0.9.4.0</FileVersion>
+    <Version>0.9.5</Version>
+    <FileVersion>0.9.5.0</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/LANPUT.ico</ApplicationIcon>
   </PropertyGroup>
@@ -19,6 +19,10 @@
     <Resource Include="Assets/LANPUT.ico" />
     <Resource Include="Assets/logo.png" />
     <Resource Include="Assets/app-icon.png" />
+    <Resource Include="../SharedAssets/cinema-hall.jpg" Link="Assets/cinema-hall.jpg" />
+    <Resource Include="../SharedAssets/music-room-background.jpg" Link="Assets/music-room-background.jpg" />
+    <Resource Include="../SharedAssets/vinyl-record.png" Link="Assets/vinyl-record.png" />
+    <Resource Include="../SharedAssets/tonearm.png" Link="Assets/tonearm.png" />
     <ProjectReference Include="../LANPUT.Core/LANPUT.Core.csproj" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.10.2" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.24" />

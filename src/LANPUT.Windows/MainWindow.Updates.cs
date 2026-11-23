@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -12,7 +12,7 @@ public partial class MainWindow
     UpdateOptions updateOptions = new();
     bool checkingUpdates;
     static string UpdateOptionsPath => Path.Combine(DataPath, "updates.json");
-    static string CurrentVersion => typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "0.9.4";
+    static string CurrentVersion => typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "0.9.5";
 
     void InitializeUpdates()
     {

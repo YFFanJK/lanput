@@ -1,0 +1,60 @@
+name: Build Linux and macOS previews
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/LANPUT.Desktop/**'
+      - 'src/LANPUT.Core/**'
+      - 'tests/**'
+      - 'installer/macos/**'
+      - 'scripts/package-desktop.py'
+      - 'Directory.Build.props'
+      - '.github/workflows/desktop-preview.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: macos-15
+            rid: osx-arm64
+          - os: macos-15-intel
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install Linux playback libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libvlc5 vlc-plugin-base vlc-plugin-video-output libice6 libsm6 libfontconfig1 libx11-6 fonts-noto-cjk
+      - name: Install macOS playback engine
+        if: runner.os == 'macOS'
+        run: brew install --cask vlc
+      - name: Core regression
+        run: dotnet run --project tests/LANPUT.Tests/LANPUT.Tests.csproj -c Release
+      - name: Desktop regression
+        run: dotnet run --project tests/LANPUT.Desktop.Tests/LANPUT.Desktop.Tests.csproj -c Release -- --native
+      - name: Package preview
+        run: python3 scripts/package-desktop.py --rid ${{ matrix.rid }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: LANPUT-preview-${{ matrix.rid }}
+          path: |
+            dist/desktop-preview/${{ matrix.rid }}/*.deb
+            dist/desktop-preview/${{ matrix.rid }}/*.tar.gz
+            dist/desktop-preview/${{ matrix.rid }}/*.dmg
+            dist/desktop-preview/${{ matrix.rid }}/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7

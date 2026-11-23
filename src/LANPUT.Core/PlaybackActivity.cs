@@ -19,6 +19,8 @@ public sealed record PlaybackActivity(PlaybackPhase Phase, double? BufferPercent
         _ => "已停止"
     };
 
+    public string LabelFor(bool image) => image && Phase == PlaybackPhase.Playing ? "正在展示图片" : Label;
+
     public static double? ValidPercent(double? value) => value is { } percent && double.IsFinite(percent)
         && percent is >= 0 and <= 100 ? percent : null;
 

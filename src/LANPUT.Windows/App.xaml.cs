@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 
 namespace LANPUT.Windows;
 public partial class App : Application
@@ -10,7 +10,7 @@ public partial class App : Application
         if (!instance.Acquire(Dispatcher, () => (MainWindow as LANPUT.Windows.MainWindow)?.RestoreFromTray()))
         { Shutdown(); return; }
         AppStorage.MigrateLegacySettings();
-        AppDiagnostics.Record("应用启动 · LANPUT 0.9.4");
+        AppDiagnostics.Record("应用启动 · LANPUT 0.9.5");
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
             AppDiagnostics.Record("未处理的线程异常", args.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (_, args) => AppDiagnostics.Record("未观察的任务异常", args.Exception);

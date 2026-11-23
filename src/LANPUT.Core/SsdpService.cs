@@ -67,7 +67,7 @@ public sealed class SsdpService(NetworkChoice network, Guid id, Uri location, Ac
             await Task.Delay(Random.Shared.Next(10, 150), stop.Token);
             foreach (var target in st == "ssdp:all" ? Targets : [st])
             {
-                var message = $"HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nEXT:\r\nLOCATION: {location}\r\nSERVER: Windows/10.0 UPnP/1.0 LanCast/0.2\r\nST: {target}\r\nUSN: {Usn(target)}\r\n\r\n";
+                var message = $"HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nEXT:\r\nLOCATION: {location}\r\nSERVER: {ReceiverIdentity.Server}\r\nST: {target}\r\nUSN: {Usn(target)}\r\n\r\n";
                 await sender!.SendAsync(Encoding.ASCII.GetBytes(message), remote, stop.Token);
             }
         }
@@ -90,7 +90,7 @@ public sealed class SsdpService(NetworkChoice network, Guid id, Uri location, Ac
     {
         foreach (var target in Targets)
         {
-            var alive = kind == "ssdp:alive" ? $"CACHE-CONTROL: max-age=1800\r\nLOCATION: {location}\r\nSERVER: Windows/10.0 UPnP/1.0 LanCast/0.2\r\n" : "";
+            var alive = kind == "ssdp:alive" ? $"CACHE-CONTROL: max-age=1800\r\nLOCATION: {location}\r\nSERVER: {ReceiverIdentity.Server}\r\n" : "";
             var message = $"NOTIFY * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\n{alive}NT: {target}\r\nNTS: {kind}\r\nUSN: {Usn(target)}\r\n\r\n";
             await sender!.SendAsync(Encoding.ASCII.GetBytes(message), Group);
         }

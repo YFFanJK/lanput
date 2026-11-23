@@ -39,15 +39,8 @@ public partial class MainWindow
     }
     void MusicLayout_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (VinylFrame is null || MusicLayout is null) return;
-        if (VinylStage is null) return;
-        // The star row is the space remaining AFTER real song metadata has been measured.
-        // Avoid a fixed metadata allowance: album, font metrics and DPI change its height.
-        double size = Math.Clamp(Math.Min(VinylStage.ActualWidth, VinylStage.ActualHeight), 64, 510);
-        VinylFrame.Width = VinylFrame.Height = size;
-        RecordSurface.Margin = new Thickness(size * .09);
-        MusicDivider.Height = Math.Clamp(MusicLayout.ActualHeight * .72, 100, 360);
-        MusicTitle.FontSize = Math.Clamp(size * .068, 19, 34);
+        if (MusicTitle is null || MusicToolsScroll is null) return;
+        MusicTitle.FontSize = Math.Clamp(MusicLayout.ActualWidth * .026, 19, 34);
         MusicCurrent.FontSize = Math.Clamp(Math.Min(MusicLayout.ActualWidth * .033, MusicLayout.ActualHeight * .1), 20, 43);
         MusicPrevious.FontSize = MusicNext.FontSize = Math.Clamp(MusicLayout.ActualWidth * .019, 13, 20);
         MusicCurrent.MaxHeight = Math.Max(70, MusicLayout.ActualHeight * .5);

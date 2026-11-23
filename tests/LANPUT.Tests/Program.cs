@@ -518,10 +518,10 @@ Test("Playback information keeps unknown values distinct from measured zero", ()
 {
     var empty = new PlaybackInfo().ToDisplayText();
     Assert(empty.Contains("尚无影片") && empty.Contains("暂无") && !empty.Contains("NaN"));
-    var measured = new PlaybackInfo(LostFrames: 0, DisplayedFrames: 120, BufferPercent: 0).ToDisplayText();
+    var measured = new PlaybackInfo(HasMedia: true, LostFrames: 0, DisplayedFrames: 120, BufferPercent: 0).ToDisplayText();
     Assert(measured.Contains("丢失视频帧   0") && measured.Contains("已显示视频帧 120") && measured.Contains("缓冲进度     0 %"));
-    var invalid = new PlaybackInfo(BufferPercent: double.PositiveInfinity, LostFrames: -1).ToDisplayText();
-    Assert(invalid.Contains("缓冲进度     暂无") && invalid.Contains("丢失视频帧   暂无"));
+    var invalid = new PlaybackInfo(HasMedia: true, BufferPercent: double.PositiveInfinity, LostFrames: -1).ToDisplayText();
+    Assert(invalid.Contains("缓冲进度     当前无缓冲百分比") && invalid.Contains("丢失视频帧   引擎未提供"));
 });
 Test("Playback information formats rational frame rates and track bitrate units", () =>
 {
@@ -530,8 +530,51 @@ Test("Playback information formats rational frame rates and track bitrate units"
     Assert(PlaybackInfo.FrameRate(25, 0) == "暂无" && PlaybackInfo.FrameRate(0, 1) == "暂无");
     Assert(PlaybackInfo.Bitrate(0) == "暂无" && PlaybackInfo.Bitrate(128000) == "128 kbps");
     Assert(PlaybackInfo.Bitrate(8000000) == "8 Mbps");
-    Assert(new PlaybackInfo(Width: 1920, Height: 1080).ToDisplayText().Contains("1920 × 1080"));
-    Assert(new PlaybackInfo(Width: 1920, Height: 0).ToDisplayText().Contains("分辨率       暂无"));
+    Assert(new PlaybackInfo(HasMedia: true, Width: 1920, Height: 1080).ToDisplayText().Contains("1920 × 1080"));
+    Assert(new PlaybackInfo(HasMedia: true, Width: 1920, Height: 0).ToDisplayText().Contains("分辨率       引擎未提供"));
+});
+
+Test("Still image presentation preserves stopped paused and error states", () =>
+{
+    Assert(new PlaybackActivity(PlaybackPhase.Playing).LabelFor(true) == "正在展示图片");
+    foreach (var phase in new[] { PlaybackPhase.Idle, PlaybackPhase.Opening, PlaybackPhase.Buffering, PlaybackPhase.Paused, PlaybackPhase.Error })
+    {
+        var activity = new PlaybackActivity(phase);
+        Assert(activity.LabelFor(true) == activity.Label);
+    }
+    Assert(new PlaybackActivity(PlaybackPhase.Playing).LabelFor(false) == "正在播放");
+});
+Test("Still image presentation does not imply degraded video playback", () =>
+{
+    var image = new PlaybackInfo(HasMedia: true, IsImage: true, VideoTracks: 1, AudioTracks: 0,
+        VideoCodec: "24 bits RGB", Width: 1920, Height: 1080, FrameRateNum: 10, FrameRateDen: 1,
+        DisplayedFrames: 168, LostFrames: 0).ToDisplayText();
+    Assert(image.Contains("媒体类型     图片") && image.Contains("1920 × 1080"));
+    Assert(!image.Contains("10 fps") && !image.Contains("丢失视频帧") && !image.Contains("音频编码"));
+    var video = new PlaybackInfo(HasMedia: true, VideoTracks: 1, AudioTracks: 0, VideoSelected: true,
+        VideoCodec: "24 bits RGB", FrameRateNum: 60, FrameRateDen: 1).ToDisplayText();
+    Assert(video.Contains("媒体类型     视频") && video.Contains("60 fps（片源参数）"));
+    Assert(video.Contains("实际输出帧率 未测量") && video.Contains("未确认（由引擎自动选择）"));
+});
+Test("Track absence, track selection and metadata availability are distinct", () =>
+{
+    var audio = new PlaybackInfo(HasMedia: true, VideoTracks: 0, AudioTracks: 2, AudioSelected: true).ToDisplayText();
+    Assert(audio.Contains("媒体类型     纯音频") && audio.Contains("共 2 条 · 已选择播放轨道"));
+    Assert(!audio.Contains("标称帧率") && audio.Contains("音频编码     引擎未提供"));
+    var noAudio = new PlaybackInfo(HasMedia: true, VideoTracks: 1, AudioTracks: 0).ToDisplayText();
+    Assert(noAudio.Contains("音频轨道     未识别到轨道") && !noAudio.Contains("音频编码"));
+    Assert(new PlaybackInfo(HasMedia: true).ToDisplayText().Contains("等待引擎识别"));
+    Assert(!new PlaybackInfo().ToDisplayText().Contains("丢失视频帧"));
+});
+Test("Local media titles omit directories and image detection does not guess from RGB or URL suffix", () =>
+{
+    Assert(MediaPresentation.LocalTitle(Path.Combine("private", "folder", "我的影片.mp4")) == "我的影片.mp4");
+    Assert(MediaPresentation.IsImage("photo.JPG", "", true));
+    Assert(!MediaPresentation.IsImage("https://example.invalid/cover.jpg", "", false));
+    var photo = "<DIDL-Lite xmlns='urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/' xmlns:upnp='urn:schemas-upnp-org:metadata-1-0/upnp/'><item><upnp:class>object.item.imageItem.photo</upnp:class></item></DIDL-Lite>";
+    Assert(MediaPresentation.IsImage("http://example.invalid/resource", photo, false));
+    Assert(!MediaPresentation.IsImage("http://example.invalid/resource", photo.Replace("imageItem.photo", "videoItem"), false));
+    Assert(!MediaPresentation.IsImage("http://example.invalid/resource", "<broken", false));
 });
 
 Test("Cinema entry waits for video instead of a URI or opening event", () =>
@@ -632,6 +675,24 @@ Test("Automatic lyric choice prefers the recording identity and closest duration
     Assert(LyricsClient.PreferredMatch([live, other, original], new("Test Song", "Artist"), 60) == original);
     Assert(LyricsClient.PreferredMatch([other, original], new("Test Song"), 60) == original);
     Assert(LyricsClient.PreferredMatch([original with { Id = 4 }, original], new("Test Song", "Artist"), 60) is not null);
+});
+
+Test("Photographic cinema aligns with its screen and zooms uniformly across window shapes", () =>
+{
+    foreach (var size in new[] { (900d, 318d), (1144d, 536d), (1920d, 1080d), (3440d, 900d) })
+    {
+        var screen = CinemaArtworkLayout.ScreenIn(size.Item1, size.Item2);
+        var rest = CinemaArtworkLayout.FrameAt(size.Item1, size.Item2, 0);
+        Assert(Math.Abs(screen.X - rest.X) < .001 && Math.Abs(screen.Y - rest.Y) < .001);
+        Assert(screen.X >= 0 && screen.Y >= 0 && screen.X + screen.Width <= size.Item1 && screen.Y + screen.Height <= size.Item2);
+        foreach (double progress in new[] { 0, .25, .5, .75, 1 })
+        {
+            var frame = CinemaArtworkLayout.FrameAt(size.Item1, size.Item2, progress);
+            Assert(Math.Abs(frame.Width / frame.Height - 1416d / 694) < .001, "Image or welcome content was stretched");
+        }
+        var end = CinemaArtworkLayout.FrameAt(size.Item1, size.Item2, 1);
+        Assert(end.X <= .001 && end.Y <= .001 && end.Width >= size.Item1 - .001 && end.Height >= size.Item2 - .001);
+    }
 });
 
 Console.WriteLine($"\n{passed} passed, {failed} failed");

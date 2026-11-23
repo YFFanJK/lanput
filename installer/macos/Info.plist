@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleIdentifier</key><string>top.fansweb.lanput.desktop</string>
+  <key>CFBundleName</key><string>LANPUT</string>
+  <key>CFBundleDisplayName</key><string>LANPUT</string>
+  <key>CFBundleExecutable</key><string>LANPUT.Desktop</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>0.9.5</string>
+  <key>CFBundleVersion</key><string>0.9.5</string>
+  <key>CFBundleIconFile</key><string>LANPUT.icns</string>
+  <key>LSMinimumSystemVersion</key><string>14.0</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.entertainment</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSLocalNetworkUsageDescription</key><string>LANPUT 需要在同一局域网发现手机，并接收手机投送的视频、音乐和播放控制。</string>
+</dict></plist>

@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([switch]$Run, [switch]$SkipArchive)
+param([switch]$Run, [switch]$SkipArchive, [string]$PublishDirectory = '')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
@@ -16,10 +16,13 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
 if (-not ((dotnet --list-sdks) -match '^10\.')) { throw '.NET 10 SDK is required.' }
 dotnet run --project tests/LANPUT.Tests/LANPUT.Tests.csproj --configuration Release
 if ($LASTEXITCODE -ne 0) { throw 'Protocol tests failed. Publishing stopped.' }
-$destination = Join-Path $root 'dist/LANPUT-win-x64'
+$destination = if ($PublishDirectory) { [System.IO.Path]::GetFullPath($PublishDirectory) } else { Join-Path $root 'dist/LANPUT-win-x64' }
 dotnet publish src/LANPUT.Windows/LANPUT.Windows.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=false -o $destination
 if ($LASTEXITCODE -ne 0) { throw 'Windows build failed.' }
 Copy-Item (Join-Path $root 'README.md') $destination
+Copy-Item (Join-Path $root 'CHANGELOG.md') $destination
+$releaseNotes = Join-Path $root ("dist/LANPUT-" + $version + "-ReleaseNotes.txt")
+if (Test-Path -LiteralPath $releaseNotes) { Copy-Item -LiteralPath $releaseNotes -Destination $destination }
 Copy-Item (Join-Path $root 'LICENSE') $destination
 New-Item -ItemType Directory -Path (Join-Path $destination 'licenses') -Force | Out-Null
 Copy-Item (Join-Path $root 'licenses/*') (Join-Path $destination 'licenses') -Recurse -Force

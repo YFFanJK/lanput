@@ -1,0 +1,19 @@
+<Application xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="LANPUT.Desktop.App" RequestedThemeVariant="Dark">
+  <Application.Resources>
+    <SolidColorBrush x:Key="Gold">#E8C976</SolidColorBrush>
+    <SolidColorBrush x:Key="Muted">#A8B4BE</SolidColorBrush>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark" Accent="#E8C976"/>
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <Style Selector="Window"><Setter Property="Background" Value="#0D1116"/><Setter Property="Foreground" Value="#F0ECE3"/></Style>
+    <Style Selector="Button"><Setter Property="MinHeight" Value="40"/><Setter Property="CornerRadius" Value="7"/><Setter Property="Padding" Value="16,8"/></Style>
+    <Style Selector="Button.primary"><Setter Property="Background" Value="{StaticResource Gold}"/><Setter Property="Foreground" Value="#251F14"/></Style>
+    <Style Selector="TextBlock.secondary"><Setter Property="Foreground" Value="{StaticResource Muted}"/></Style>
+    <Style Selector="Slider"><Setter Property="Foreground" Value="{StaticResource Gold}"/></Style>
+  </Application.Styles>
+</Application>

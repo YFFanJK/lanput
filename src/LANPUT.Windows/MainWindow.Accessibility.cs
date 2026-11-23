@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using LANPUT.Core;
 
 namespace LANPUT.Windows;
 public partial class MainWindow
@@ -40,12 +41,16 @@ public partial class MainWindow
     void UpdateIdleLayout(double availableHeight)
     {
         if (IdleContent is null) return;
-        bool compact = availableHeight * .52 < 210;
+        double screenHeight = CinemaArtworkLayout.ScreenIn(Math.Max(1, PlayerSurface.ActualWidth), Math.Max(1, PlayerSurface.ActualHeight)).Height;
+        bool compact = screenHeight < 180;
         IdleArtwork.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         IdleEyebrow.Visibility = Visibility.Collapsed;
-        IdleDetail.Visibility = availableHeight * .52 < 125 ? Visibility.Collapsed : Visibility.Visible;
+        IdleDetail.Visibility = screenHeight < 150 ? Visibility.Collapsed : Visibility.Visible;
         IdleContent.Margin = new Thickness(compact ? 16 : 24);
-        IdleTitle.FontSize = compact ? 32 : 40;
-        IdleHint.FontSize = compact ? 20 : 22;
+        // Use resting geometry, not an in-progress zoom or the previous layout's
+        // render transform; resizing must keep the same readable text sizing.
+        double scale = Math.Max(.1, screenHeight / CinemaArtworkLayout.ContentHeight);
+        IdleTitle.FontSize = Math.Clamp(26 / scale, 36, 54);
+        IdleHint.FontSize = Math.Clamp(13 / scale, 20, 30);
     }
 }

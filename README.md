@@ -6,7 +6,11 @@
 
 LANPUT 是一款 Windows 局域网媒体接收软件。接收影片时，观众席与银幕自动切换为播放画面；接收音乐时，影院换场至黑胶音乐厅，展示旋转唱片、歌曲信息与同步歌词。
 
+**当前源码版本：0.9.5。** 安装包请以 Releases 页面已发布版本为准。
+
 **平台：Windows x64 · 技术：C# / WPF / LibVLC / .NET 10 · 协议：MIT**
+
+**Linux / macOS 客户端开发中：** 已新增独立的 Avalonia 跨平台预览客户端，复用投屏核心，接入影院、音乐与歌词。运行依赖、构建方法和当前限制见 [跨平台客户端说明](src/LANPUT.Desktop/README.md)。现有 Release 下载仍为 Windows 版；Linux / macOS 预览构建不代表已完成手机投屏实机验收。
 
 [下载软件](https://github.com/YFFanJK/lanput/releases) · [运行要求](#运行要求与必要组件) · [使用方法](#安装与使用) · [连接排查](#手机搜索不到电脑设备) · [源码构建](#从源码构建) · [更新记录](CHANGELOG.md)
 
@@ -157,13 +161,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
 ## 项目结构
 
 ```text
-src/LANPUT.Core/       发现、协议、网络与诊断逻辑
-src/LANPUT.Windows/    WPF 界面、原生播放适配与交互
-src/.../Assets/        应用与安装器品牌资源
-tests/LANPUT.Tests/    核心协议、更新及歌词回归
-scripts/              构建、打包与防火墙辅助脚本
-installer/            Inno Setup 与默认更新配置
-.github/              CI、协作模板与 README 截图
+src/LANPUT.Windows/     Windows WPF 界面与播放适配
+src/LANPUT.Desktop/     Linux/macOS Avalonia 预览客户端
+src/LANPUT.Core/        设备发现、协议与可复用核心业务
+src/SharedAssets/      影院、音乐厅与图标素材
+tests/                 核心与跨平台回归测试
+scripts/               构建、打包、防火墙与诊断脚本
+installer/             安装定义与默认更新配置
+.github/               CI、协作模板与 README 截图
+licenses/              第三方许可证
+dist/                  本地构建输出（不提交 Git）
 ```
 
 ## 发布与在线更新

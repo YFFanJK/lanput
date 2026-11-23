@@ -1,4 +1,4 @@
-﻿using LANPUT.Core;
+using LANPUT.Core;
 using LibVLCSharp.Shared;
 
 namespace LANPUT.Windows;
@@ -11,12 +11,19 @@ public sealed partial class VlcPlayback
         dispatcher.VerifyAccess();
         if (disposed) return new();
         var info = new PlaybackInfo(HasMedia: media is not null,
-            State: media is null ? "尚无影片" : presentationHeld && !pauseRequested ? "正在准备放映" : Activity.Label, Source: media is null ? "暂无" : local ? "本地文件" : "网络投放",
+            State: media is null ? "尚无影片" : presentationHeld && !pauseRequested ? "正在准备放映" : PresentationLabel, Source: media is null ? "暂无" : local ? "本地文件" : "网络投放",
             Rendering: compatibility ? "兼容模式 · 软件解码 / Direct3D 9" : "默认模式 · 解码与输出由引擎选择");
         if (media is null) return info;
         var videoId = Player.VideoTrack;
         var audioId = Player.AudioTrack;
-        foreach (var track in media.Tracks)
+        var tracks = media.Tracks;
+        info = info with { IsImage = Volatile.Read(ref imageInput) != 0,
+            VideoTracks = tracks.Length == 0 ? null : tracks.Count(t => t.TrackType == TrackType.Video),
+            AudioTracks = tracks.Length == 0 ? null : tracks.Count(t => t.TrackType == TrackType.Audio),
+            VideoSelected = tracks.Any(t => t.TrackType == TrackType.Video && t.Id == videoId),
+            AudioSelected = tracks.Any(t => t.TrackType == TrackType.Audio && t.Id == audioId),
+            Decoding = compatibility ? "软件解码（兼容模式）" : "未确认（由引擎自动选择）" };
+        foreach (var track in tracks)
         {
             if (track.TrackType == TrackType.Video && track.Id == videoId)
             {

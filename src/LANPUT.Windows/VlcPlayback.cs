@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Windows.Threading;
@@ -23,6 +23,7 @@ public sealed partial class VlcPlayback : IPlayback, IDisposable
     long mediaRevision;
     bool presentationHeld, presentationPauseIssued;
     int videoOutputs;
+    int imageInput;
     int accessErrorCode;
     bool hadVideoOutput;
     long furthestPositionMs;
@@ -34,8 +35,10 @@ public sealed partial class VlcPlayback : IPlayback, IDisposable
     public event Action? PresentationStateChanged;
     public long MediaRevision => Interlocked.Read(ref mediaRevision);
     public bool IsLocal => local;
+    public bool IsImage => media is not null && Volatile.Read(ref imageInput) != 0;
+    public string PresentationLabel => Activity.LabelFor(IsImage);
     public bool HasVideoOutput => videoOutputs > 0;
-    public bool CanSeek => snapshot.Uri.Length > 0 && Player.IsSeekable && Player.Length > 0;
+    public bool CanSeek => !IsImage && snapshot.Uri.Length > 0 && Player.IsSeekable && Player.Length > 0;
     public PlaybackActivity Activity => PlaybackActivity.Resolve(Snapshot, activityNativeState, HasVideoOutput || IsAudioOnly, lastBufferPercent);
     public VlcPlayback(Dispatcher dispatcher, Action<string> log, bool compatibilityRendering = false)
     {
@@ -48,11 +51,13 @@ public sealed partial class VlcPlayback : IPlayback, IDisposable
         if (compatibility) options.AddRange(["--avcodec-hw=none", "--vout=direct3d9"]);
         vlc = new LibVLC(options.ToArray());
         // Use one truthful, explicit identity for VLC and resource-chain diagnostics.
-        vlc.SetUserAgent("LANPUT 0.2.3", HlsProbe.Agent);
+        vlc.SetUserAgent("LANPUT " + ReceiverIdentity.Version, HlsProbe.Agent);
         vlc.Log += (_, e) =>
         {
             if (Volatile.Read(ref requested) && PlaybackDiagnostics.AccessErrorCode(e.Message) is { } code)
                 Interlocked.Exchange(ref accessErrorCode, code);
+            if (e.Message.Contains("using demux module \"image\"", StringComparison.Ordinal))
+                Interlocked.Exchange(ref imageInput, 1);
             var label = PlaybackDiagnostics.Classify(e.Message);
             if (label is null) return;
             lock (nativeLogGate) { if (!nativeLabels.Add(label)) return; }
@@ -121,7 +126,7 @@ public sealed partial class VlcPlayback : IPlayback, IDisposable
         log(enabled ? "已启用兼容渲染：软件解码 / Direct3D 9，请重新投屏或选择本地视频。" : "已恢复默认渲染，请重新投屏或选择本地视频。");
     });
     public void Load(string uri, string metadata, string title) => OnUi(() => LoadCore(uri, metadata, title, false));
-    public void LoadLocal(string path) => OnUi(() => LoadCore(path, "", "本地测试视频", true));
+    public void LoadLocal(string path) => OnUi(() => LoadCore(path, "", MediaPresentation.LocalTitle(path), true));
     void LoadCore(string input, string metadata, string title, bool isLocal)
     {
         Interlocked.Increment(ref mediaRevision);
@@ -129,12 +134,16 @@ public sealed partial class VlcPlayback : IPlayback, IDisposable
         requested = false; pauseRequested = false;
         Player.Stop(); generation++; media?.Dispose(); media = null;
         lock (nativeLogGate) nativeLabels.Clear();
+        Interlocked.Exchange(ref imageInput, MediaPresentation.IsImage(input, metadata, isLocal) ? 1 : 0);
         source = input; local = isLocal; everPlayed = warnedSlow = warnedNoVideo = false; videoOutputs = 0;
         hadVideoOutput = false; furthestPositionMs = 0; Interlocked.Exchange(ref accessErrorCode, 0);
         previousNativeState = ""; activityNativeState = "Stopped"; lastBufferPercent = null; attempt.Reset();
         // Keep signed query strings unchanged. Phone metadata never becomes engine options.
         media = new Media(vlc, input, isLocal ? FromType.FromPath : FromType.FromLocation);
         media.AddOption(":network-caching=1500");
+        // Only the image demuxer consumes this option; videos and music still end normally.
+        // Apply before opening, including images without extensions or UPnP metadata.
+        media.AddOption(":image-duration=-1");
         if (!isLocal) media.AddOption(":http-user-agent=" + HlsProbe.Agent);
         if (compatibility) media.AddOption(":avcodec-hw=none");
         Player.Media = media;
@@ -181,7 +190,7 @@ public sealed partial class VlcPlayback : IPlayback, IDisposable
     });
     public void Seek(long milliseconds) => OnUi(() =>
     {
-        if (!Player.IsSeekable) throw new UpnpException(710, "Seek mode not supported");
+        if (!CanSeek) throw new UpnpException(710, "Seek mode not supported");
         Player.Time = milliseconds;
         Volatile.Write(ref snapshot, snapshot with { PositionMs = milliseconds });
     });
@@ -220,7 +229,7 @@ public sealed partial class VlcPlayback : IPlayback, IDisposable
                 log($"播放中但无视频输出 · 视频轨数 {Player.VideoTrackCount} · 窗口{(Player.Hwnd == IntPtr.Zero ? "未绑定" : "已绑定")}；请对照测试本地视频及兼容渲染。");
             }
         }
-        Volatile.Write(ref snapshot, snapshot with { State = transport, PositionMs = Math.Max(0, Player.Time), DurationMs = Math.Max(0, Player.Length) });
+        Volatile.Write(ref snapshot, snapshot with { State = transport, PositionMs = IsImage ? 0 : Math.Max(0, Player.Time), DurationMs = IsImage ? 0 : Math.Max(0, Player.Length) });
     }
     public void SetPresentationHold(bool hold)
     {

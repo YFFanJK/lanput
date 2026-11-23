@@ -50,7 +50,8 @@ public partial class MainWindow
         if (!active) return;
         MusicTitle.Text = playback.Music.Title.Length > 0 ? playback.Music.Title : "正在播放音乐";
         MediaTitle.Text = MusicTitle.Text;
-        MusicArtist.Text = playback.Music.Artist.Length > 0 ? playback.Music.Artist : "手机未提供歌手信息";
+        MusicArtist.Text = playback.Music.Artist.Length > 0 ? playback.Music.Artist
+            : playback.IsLocal ? "文件未提供歌手信息" : "手机未提供歌手信息";
         MusicAlbum.Text = playback.Music.Album;
         MusicAlbum.Visibility = string.IsNullOrWhiteSpace(MusicAlbum.Text) ? Visibility.Collapsed : Visibility.Visible;
         MusicPlaying.Text = "私人音乐厅";

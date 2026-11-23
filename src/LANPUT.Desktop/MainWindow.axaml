@@ -1,0 +1,105 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:LANPUT.Desktop" xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+        x:Class="LANPUT.Desktop.MainWindow" Title="LANPUT · 私人放映室" Width="1180" Height="780"
+        MinWidth="860" MinHeight="600" Icon="avares://LANPUT.Desktop/Assets/LANPUT.ico">
+  <Grid RowDefinitions="64,*,112">
+    <Grid Margin="24,8" ColumnDefinitions="*,Auto">
+      <StackPanel VerticalAlignment="Center" Spacing="4">
+        <TextBlock x:Name="ServiceText" Text="正在准备接收服务" FontSize="13" Foreground="#7DC5D3"/>
+        <TextBlock x:Name="DeviceText" Classes="secondary" FontSize="12"/>
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <Button x:Name="ReceiveButton" Content="开始接收" Click="Receive_Click"/>
+        <Button Content="打开文件" Click="Open_Click"/>
+        <Button Content="设置" Click="Settings_Click"/>
+        <Button Content="诊断" Click="Diagnostics_Click"/>
+      </StackPanel>
+    </Grid>
+    <Grid Grid.Row="1" Margin="16,0" ClipToBounds="True" Background="#05090D">
+      <!-- Native video never changes size during a transition. Controls stay
+           outside its rectangle, avoiding native-window airspace overlays. -->
+      <vlc:VideoView x:Name="Video" IsVisible="False"/>
+      <Grid x:Name="CinemaScene">
+        <Viewbox Stretch="Uniform">
+         <Canvas Width="2752" Height="1536">
+          <Image Source="avares://LANPUT.Desktop/Assets/cinema-hall.jpg" Width="2752" Height="1536" Stretch="Uniform"/>
+          <Viewbox Canvas.Left="669" Canvas.Top="262" Width="1416" Height="694" Stretch="Uniform">
+           <Border Width="800" Height="392.090395480226">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Margin="24">
+            <Image Source="avares://LANPUT.Desktop/Assets/logo.png" Width="160" Height="92" Stretch="Uniform"/>
+            <TextBlock Text="今晚，坐进故事里。" FontSize="40" HorizontalAlignment="Center"/>
+            <TextBlock Text="手机选好影片，投屏，剩下的交给LANPUT。" FontSize="22" TextWrapping="Wrap" TextAlignment="Center" Foreground="#BBC5CB"/>
+            <TextBlock x:Name="IdleDetail" Text="在手机播放器中点击 TV，选择这台电脑" Classes="secondary" HorizontalAlignment="Center" FontSize="18"/>
+          </StackPanel>
+           </Border>
+          </Viewbox>
+         </Canvas>
+        </Viewbox>
+      </Grid>
+      <Grid x:Name="MusicScene" IsVisible="False" Background="#101B27" ColumnDefinitions="5*,6*" Margin="0">
+        <Grid Margin="32" RowDefinitions="*,Auto,Auto,Auto">
+          <local:VinylArtwork x:Name="Record" MaxHeight="340"/>
+          <TextBlock x:Name="SongTitle" Grid.Row="1" Margin="0,12,0,0" FontSize="25" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock x:Name="ArtistText" Grid.Row="2" Margin="0,8,0,0" Classes="secondary" TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock x:Name="AlbumText" Grid.Row="3" Margin="0,8,0,0" FontSize="12" Foreground="#7F919F" TextAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Column="1" Margin="12,32,40,32" RowDefinitions="Auto,*,Auto">
+          <TextBlock Text="私人音乐厅" Foreground="{StaticResource Gold}" FontSize="13"/>
+          <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="26">
+            <TextBlock x:Name="PreviousLyric" FontSize="19" Foreground="#85929F" TextWrapping="Wrap"/>
+            <TextBlock x:Name="CurrentLyric" Text="让音乐填满这一刻。" FontSize="30" FontWeight="SemiBold" Foreground="{StaticResource Gold}" TextWrapping="Wrap"/>
+            <TextBlock x:Name="NextLyric" FontSize="19" Foreground="#85929F" TextWrapping="Wrap"/>
+          </StackPanel>
+          <StackPanel Grid.Row="2" Spacing="10">
+            <TextBlock x:Name="LyricsStatus" Text="歌词由 LRCLIB 提供" Classes="secondary" FontSize="12" TextWrapping="Wrap"/>
+            <WrapPanel Orientation="Horizontal">
+              <Button Content="搜索歌词" Margin="0,0,8,8" Click="SearchLyrics_Click"/>
+              <Button Content="导入 LRC" Margin="0,0,8,8" Click="ImportLyrics_Click"/>
+              <Button Content="提前 0.5s" Margin="0,0,8,0" Click="LyricsEarlier_Click"/>
+              <Button Content="延后 0.5s" Click="LyricsLater_Click"/>
+            </WrapPanel>
+          </StackPanel>
+        </Grid>
+      </Grid>
+      <Grid x:Name="TransitionScene" IsVisible="False" Background="#0A1018">
+        <Grid ColumnDefinitions="*,*" IsHitTestVisible="False">
+          <Border x:Name="LeftCurtain" Background="#182433" BorderBrush="#5C5238" BorderThickness="0,0,1,0">
+            <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
+          </Border>
+          <Border x:Name="RightCurtain" Grid.Column="1" Background="#182433" BorderBrush="#5C5238" BorderThickness="1,0,0,0">
+            <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
+          </Border>
+        </Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="18">
+          <Image Source="avares://LANPUT.Desktop/Assets/logo.png" Width="155" Height="95"/>
+          <TextBlock x:Name="TransitionTitle" Text="好戏马上上演" FontSize="34" Foreground="{StaticResource Gold}" HorizontalAlignment="Center"/>
+          <TextBlock Text="LANPUT · 为你留好一个位置" Classes="secondary" HorizontalAlignment="Center"/>
+          <Button Content="跳过动画 · Esc" Click="Skip_Click" HorizontalAlignment="Center"/>
+        </StackPanel>
+      </Grid>
+    </Grid>
+    <Grid Grid.Row="2" Margin="24,12,24,14" RowDefinitions="Auto,*">
+      <Grid x:Name="PlaybackTimeline" Height="28" ColumnDefinitions="70,*,70">
+        <TextBlock x:Name="PositionText" Text="00:00:00" VerticalAlignment="Center" Classes="secondary"/>
+        <Slider x:Name="Progress" Grid.Column="1" Minimum="0" Maximum="1" Value="0" AutomationProperties.Name="播放进度"/>
+        <TextBlock x:Name="DurationText" Grid.Column="2" Text="00:00:00" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="secondary"/>
+      </Grid>
+      <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,8,0,0">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="PlayButton" Classes="primary" Content="播放" Click="Play_Click" MinWidth="76"/>
+          <Button Content="停止" Click="Stop_Click"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Margin="20,0" VerticalAlignment="Center" Spacing="3">
+          <TextBlock x:Name="MediaTitle" Text="LANPUT" TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="PlaybackStatus" Text="等待手机投屏" Classes="secondary" FontSize="12"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Content="播放信息" Click="PlaybackInfo_Click"/>
+          <Button x:Name="MuteButton" Content="静音" Click="Mute_Click"/>
+          <Slider x:Name="Volume" Width="100" Minimum="0" Maximum="100" Value="70" AutomationProperties.Name="音量"/>
+          <Button Content="全屏" Click="Fullscreen_Click"/>
+        </StackPanel>
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>

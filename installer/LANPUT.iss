@@ -1,5 +1,8 @@
 ﻿#ifndef AppVersion
-  #define AppVersion "0.9.4"
+  #define AppVersion "0.9.5"
+#endif
+#ifndef SourceDir
+  #define SourceDir "..\dist\LANPUT-win-x64"
 #endif
 
 [Setup]
@@ -38,7 +41,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "快捷方式："
 
 [Files]
-Source: "..\dist\LANPUT-win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\LANPUT"; Filename: "{app}\LANPUT.exe"; WorkingDir: "{app}"
